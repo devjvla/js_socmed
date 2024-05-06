@@ -64,6 +64,58 @@ class UsersController {
 
     res.json(response_data);
   }
+
+  /**
+  * DOCU: This function will validate if provided email address and password.
+  * If valid, proceed to userModel.signinUser. If not, prompt user with an error message
+  * Triggered by: POST request to /signup  <br>
+  * Last Updated Date: April 23, 2024
+  * @async
+  * @function
+  * @memberOf DatabaseModel
+  * @return {db_connection} - returns database connection
+  * @author JV Abengona
+  */
+  signin = async (req, res) => {
+    let response_data = { status: false, result: {}, error: null };
+
+    try {
+      /* Check if data provided is valid */
+      const validation_result = validationResult(req).errors;
+
+      if(validation_result.length) {
+        /* Populate object to store input fields with errors */
+        validation_result.forEach(error => {
+          response_data.result[error.path] = error.msg;
+        });
+      } else {
+        /* Proceed to sign in */
+        let userModel   = new UserModel();
+        let signin_user = await userModel.signinUser(req.body);
+
+        if(!signin_user.status) {
+          throw new Error(signin_user.error);
+        }
+
+        let authHelper   = new AuthHelper();
+        let create_token = await authHelper.createUserToken({ ...signin_user.result });
+
+        if(!create_token.status) {
+          throw new Error(create_token.error);
+        }
+
+        // Set HTTP-Only Cookie
+        res.cookie("user_token", create_token.result, { httpOnly: true });
+
+        response_data.status = true;
+        response_data.result = { ...signin_user.result }
+      }
+    } catch (error) {
+      response_data.error = error.message;
+    }
+
+    res.json(response_data);
+  }
 }
 
 export default (function user(){

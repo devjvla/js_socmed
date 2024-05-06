@@ -96,7 +96,7 @@ class UserModel extends QueryModel {
   /**
   * DOCU: Function will fetch a user record that matches the given email address and password.
   * Triggered by: UsersController.signinUser <br>
-  * Last Updated Date: April 16, 2024
+  * Last Updated Date: May 6, 2024
   * @async
   * @function
   * @memberOf QueryModel
@@ -110,9 +110,16 @@ class UserModel extends QueryModel {
     try {
       let { email_address, password } = params;
 
-      /* Get user using email_address and password */
-      let get_user_query = mysqlFormat(`SELECT id, first_name, last_name FROM users WHERE email_address = ? AND password = SHA1(CONCAT(created_at, ?));`, [email_address, password]);
-      let [get_user]     = await this.executeQuery("UserModel | SigninUser", get_user_query);
+      /* Get user and profile_id using email_address and password */
+      let get_user_query = mysqlFormat(`
+        SELECT 
+          users.id, users.first_name, users.last_name, profiles.id AS profile_id
+        FROM users
+        INNER JOIN profiles ON profiles.user_id = users.id
+        WHERE email_address = ? AND password = SHA1(CONCAT(users.created_at, ?));
+      `, [email_address, password]);
+
+      let [get_user] = await this.executeQuery("UserModel | SigninUser", get_user_query);
 
       if(!get_user) {
         throw new Error("Email address or password is incorrect.");
