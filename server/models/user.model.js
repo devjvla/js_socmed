@@ -7,6 +7,15 @@ import QueryHelper from "../helpers/query.helper.js";
 import AppConstants from "../config/constants.js";
 const { QUERY_YES } = AppConstants;
 
+// Model
+import ProfileModel from "./profile.model.js";
+
+/** 
+* @class UserModel
+* Handles all User-related methods
+* Last Updated Date: May 6, 2024
+* @author JV
+*/
 class UserModel extends QueryModel {
   constructor(){
     super();
@@ -14,14 +23,14 @@ class UserModel extends QueryModel {
 
   /**
   * DOCU: Function will check if email address exists in the database.
-  * Proceed in creating a user record if email address doesn't exist in the database.
+  * Proceed in creating a user and profile record if email address doesn't exist in the database.
   * Triggered by: UsersController.signupUser <br>
-  * Last Updated Date: March 18, 2024
+  * Last Updated Date: May 6, 2024
   * @async
   * @function
-  * @memberOf DatabaseModel
+  * @memberOf QueryModel
   * @param {object} - params (e.g. id, first_name, last_name, or email_address)
-  * @return {db_connection} - returns database connection
+  * @return {object} - response_data { status, result, error }
   * @author JV
   */
   signupUser = async (params) => {
@@ -60,6 +69,16 @@ class UserModel extends QueryModel {
         }
       }
 
+      // Create user's Profile record
+      let profileModel = new ProfileModel(this.active_transaction);
+      let create_profile = await profileModel.createProfile(create_user.insertId);
+
+      console.log(create_profile);
+
+      if(!create_profile.status) {
+        throw new Error(create_profile.error);
+      }
+
       await this.commitTransaction();
 
       response_data.status = true;
@@ -82,9 +101,9 @@ class UserModel extends QueryModel {
   * Last Updated Date: April 16, 2024
   * @async
   * @function
-  * @memberOf DatabaseModel
+  * @memberOf QueryModel
   * @param {object} - params (email_address, password)
-  * @return {db_connection} - returns database connection
+  * @return {object} - response_data { status, result, error }
   * @author JV
   */
   signinUser = async (params) => {
@@ -116,9 +135,9 @@ class UserModel extends QueryModel {
   * Last Updated Date: March 17, 2024
   * @async
   * @function
-  * @memberOf DatabaseModel
+  * @memberOf QueryModel
   * @param {object} - params (e.g. id, first_name, last_name, or email_address)
-  * @return {db_connection} - returns database connection
+  * @return {object} - response_data { status, result, error }
   * @author JV
   */
   getUser = async (params) => {
@@ -153,9 +172,9 @@ class UserModel extends QueryModel {
   * Last Updated Date: March 17, 2024
   * @async
   * @function
-  * @memberOf DatabaseModel
+  * @memberOf QueryModel
   * @param {object} - params (user_id, salt, password)
-  * @return {db_connection} - returns database connection
+  * @return {object} - response_data { status, result, error }
   * @author JV
   */
   _hashPassword = async (params) => {
