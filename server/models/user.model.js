@@ -73,8 +73,6 @@ class UserModel extends QueryModel {
       let profileModel = new ProfileModel(this.active_transaction);
       let create_profile = await profileModel.createProfile(create_user.insertId);
 
-      console.log(create_profile);
-
       if(!create_profile.status) {
         throw new Error(create_profile.error);
       }
