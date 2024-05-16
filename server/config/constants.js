@@ -12,7 +12,7 @@ const AppConstants = {
   },
   QUERY_YES: 1,
   QUERY_NO: 0,
-  JWT_TOKEN_EXPIRATION: 1_800_000
+  JWT_TOKEN_EXPIRATION: 3600 // 1 hour
 }
 
 export default AppConstants;

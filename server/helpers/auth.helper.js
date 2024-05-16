@@ -33,7 +33,7 @@ class AuthHelper {
 
   /**
   * DOCU: This function handles the verification of JWT.
-  * Last Updated Date: April 23, 2024
+  * Last Updated Date: May 16, 2024
   * @async
   * @function
   * @param {object}
@@ -46,18 +46,17 @@ class AuthHelper {
       const user_token = req.cookies.user_token;
 
       if(!user_token) {
-        res.status(401);
-        throw new Error("Failed to authenticate user");
+        throw new Error("You are unauthorized.");
       }
       
       const user = JWT.verify(user_token, process.env.JWT_SECRET);
       req.user = user;
-    } catch (error) {
-      res.error = error.message;
-      res.clearCookie("user_token");
-    }
 
-    next();
+      next();
+    } catch (error) {
+      res.clearCookie("user_token");
+      res.status(401).json(error.name === "TokenExpiredError" ? "Your session has expired. Please re-login." : "You are unauthorized.");
+    }
   }
 }
 
